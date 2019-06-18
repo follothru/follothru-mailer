@@ -9,7 +9,7 @@ var dbPassword = process.env.DB_PASSWORD;
 
 var nodeEnv = exports.nodeEnv = process.env.NODE_ENV;
 
-var fetchInterval = exports.fetchInterval = process.env.FETCH_INTERVAL;
+var fetchInterval = exports.fetchInterval = process.env.FETCH_INTERVAL || 5000;
 
 var emailAccountUsername = exports.emailAccountUsername = process.env.EMAIL_ACCOUNT_USERNAME;
 

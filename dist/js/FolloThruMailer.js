@@ -26,13 +26,17 @@ var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
+var _loggers = require('./utils/loggers');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+var emailRoot = _path2.default.join(__dirname, 'resources/emails');
+
 var transport = (0, _configMailer2.default)();
 
-var emailRoot = _path2.default.join(__dirname, 'resources/emails');
+var logger = (0, _loggers.createLogger)('FolloThruMailer.js');
 
 function sendEmail(to, template, locals) {
   var email = new _emailTemplates2.default({
@@ -65,7 +69,7 @@ function sendEmailsToStudentGroup(studentGroup, template) {
       sendEmail(email, template, locals).then(function () {
         return resolve({ success: true, student: student });
       }).catch(function (error) {
-        console.error('Failed to send email to ' + email, error);
+        logger.error('Failed to send email to \'' + email + '\'', error);
         resolve({ success: false, student: student, error: error });
       });
     });
@@ -74,9 +78,20 @@ function sendEmailsToStudentGroup(studentGroup, template) {
   return Promise.all(promises);
 }
 
+var sendNotification = function sendNotification(notification) {
+  return sendEmailsToStudentGroup(notification.studentGroup, 'follothru').then(function (results) {
+    var successes = _lodash2.default.filter(results, function (result) {
+      return result.success;
+    });
+    logger.info('(success: ' + successes.length + '/' + results.length + ') send notification(' + notification._id + ') completed.');
+  }).then(function () {
+    return notification;
+  });
+};
+
 var handleUpdateNotificationResponse = function handleUpdateNotificationResponse(res) {
   if (res && res.nModified > 0) {
-    console.log('Reminder notification statuses updated.', res);
+    logger.info('Reminder notification statuses updated.', res);
   }
   return res;
 };
@@ -90,21 +105,19 @@ var FolloThruMailer = function () {
     key: 'sendNotifications',
     value: function sendNotifications() {
       (0, _ReminderService.getNotifications)().then(function (notifications) {
-        var sentPromises = _lodash2.default.map(notifications, function (notification) {
-          return sendEmailsToStudentGroup(notification.studentGroup, 'follothru').then(function () {
-            return console.log('Email sent. notification id: ' + notification._id);
-          }).then(function () {
-            return notification;
-          });
-        });
+        var sentPromises = _lodash2.default.map(notifications, sendNotification);
 
-        Promise.all(sentPromises).then(function (notifications) {
+        return Promise.all(sentPromises).then(function (notifications) {
           return (0, _ReminderService.updateNotificationStatuses)(notifications).then(handleUpdateNotificationResponse);
+        }).then(function () {
+          return sentPromises;
         }).catch(function (err) {
-          console.error('Failed to update notification statuses.', err);
+          logger.error('Failed to update notification statuses.', err);
         });
+      }).then(function (sents) {
+        return logger.info('Update completed. ' + sents.length + ' notification(s) processed.');
       }).catch(function (err) {
-        console.error('Failed to fetch reminder notifications.', err);
+        logger.error('Failed to fetch reminder notifications.', err);
       });
     }
   }, {

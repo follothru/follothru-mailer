@@ -4,7 +4,7 @@ const dbPassword = process.env.DB_PASSWORD;
 
 export const nodeEnv = process.env.NODE_ENV;
 
-export const fetchInterval = process.env.FETCH_INTERVAL;
+export const fetchInterval = process.env.FETCH_INTERVAL || 5000;
 
 export const emailAccountUsername = process.env.EMAIL_ACCOUNT_USERNAME;
 

@@ -4,10 +4,13 @@ import path from 'path';
 import { emailAccountUsername, fetchInterval } from "./configs/config";
 import { getNotifications, updateNotificationStatuses } from "./services/Reminder/ReminderService";
 import _ from 'lodash';
+import { createLogger } from "./utils/loggers";
+
+const emailRoot = path.join(__dirname, 'resources/emails');
 
 const transport = configMailer();
 
-const emailRoot = path.join(__dirname, 'resources/emails');
+const logger = createLogger('FolloThruMailer.js');
 
 function sendEmail(to, template, locals) {
   const email = new Email({
@@ -35,7 +38,7 @@ function sendEmailsToStudentGroup(studentGroup, template, locals = {}) {
     sendEmail(email, template, locals)
       .then(() => resolve({ success: true, student }))
       .catch(error => {
-        console.error(`Failed to send email to ${email}`, error);
+        logger.error(`Failed to send email to '${email}'`, error);
         resolve({ success: false, student, error });
       });
   }));
@@ -43,9 +46,17 @@ function sendEmailsToStudentGroup(studentGroup, template, locals = {}) {
   return Promise.all(promises);
 }
 
+const sendNotification = notification =>
+  sendEmailsToStudentGroup(notification.studentGroup, 'follothru')
+    .then(results => {
+      const successes = _.filter(results, result => result.success);
+      logger.info(`(success: ${successes.length}/${results.length}) send notification(${notification._id}) completed.`);
+    })
+    .then(() => notification);
+
 const handleUpdateNotificationResponse = res => {
   if (res && res.nModified > 0) {
-    console.log('Reminder notification statuses updated.', res);
+    logger.info('Reminder notification statuses updated.', res);
   }
   return res;
 }
@@ -53,21 +64,19 @@ const handleUpdateNotificationResponse = res => {
 export default class FolloThruMailer {
   sendNotifications() {
     getNotifications().then(notifications => {
-      const sentPromises = _.map(notifications, notification =>
-        sendEmailsToStudentGroup(notification.studentGroup, 'follothru')
-          .then(() => console.log(`Email sent. notification id: ${notification._id}`))
-          .then(() => notification)
-      );
+      const sentPromises = _.map(notifications, sendNotification);
 
-      Promise.all(sentPromises)
+      return Promise.all(sentPromises)
         .then(notifications => updateNotificationStatuses(notifications)
           .then(handleUpdateNotificationResponse))
+        .then(() => sentPromises)
         .catch(err => {
-          console.error('Failed to update notification statuses.', err);
+          logger.error('Failed to update notification statuses.', err);
         });
     })
+      .then(sents => logger.info(`Update completed. ${sents.length} notification(s) processed.`))
       .catch(err => {
-        console.error('Failed to fetch reminder notifications.', err);
+        logger.error('Failed to fetch reminder notifications.', err);
       });
   }
 
