@@ -1,7 +1,8 @@
 import FolloThruMailer from "./FolloThruMailer";
 import configDatabase from "./configs/configDatabase";
 
-configDatabase();
+configDatabase().then(() => {
+  const mailer = new FolloThruMailer();
+  mailer.start();
+});
 
-const mailer = new FolloThruMailer();
-mailer.start();

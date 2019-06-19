@@ -7,6 +7,7 @@
     "start": "npm run build && node ./dist/js",
     "start-prod": "npm run build && NODE_ENV=\"prod\" npm run start",
     "build": "rm -R -f dist/ && babel -d dist/ src/ --copy-files",
+    "docker-build": "docker build -t follothru/mailer .",
     "test": "npm run build && mocha dist/test/**/*-test.js"
   },
   "author": "Jianhao Xu",
