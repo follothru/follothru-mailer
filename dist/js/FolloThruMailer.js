@@ -22,11 +22,11 @@ var _config = require('./configs/config');
 
 var _ReminderService = require('./services/Reminder/ReminderService');
 
+var _loggers = require('./utils/loggers');
+
 var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
-
-var _loggers = require('./utils/loggers');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -79,7 +79,7 @@ function sendEmailsToStudentGroup(studentGroup, template) {
 }
 
 var sendNotification = function sendNotification(notification) {
-  return sendEmailsToStudentGroup(notification.studentGroup, 'follothru').then(function (results) {
+  return sendEmailsToStudentGroup(notification.studentGroup, 'follothru', notification.meta).then(function (results) {
     var successes = _lodash2.default.filter(results, function (result) {
       return result.success;
     });

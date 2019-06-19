@@ -16,7 +16,8 @@ var ReminderNotificationSchema = new _mongoose.Schema({
   _id: _mongoose.Schema.Types.ObjectId,
   sent: Boolean,
   dateTime: Date,
-  studentGroup: { type: _mongoose.Schema.Types.ObjectId, ref: 'StudentGroupModel' }
+  studentGroup: { type: _mongoose.Schema.Types.ObjectId, ref: 'StudentGroupModel' },
+  meta: Object
 });
 
 exports.default = (0, _mongoose.model)('ReminderNotificationModel', ReminderNotificationSchema);

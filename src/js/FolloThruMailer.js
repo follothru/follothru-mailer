@@ -3,8 +3,8 @@ import Email from 'email-templates';
 import path from 'path';
 import { emailAccountUsername, fetchInterval } from "./configs/config";
 import { getNotifications, updateNotificationStatuses } from "./services/Reminder/ReminderService";
-import _ from 'lodash';
 import { createLogger } from "./utils/loggers";
+import _ from 'lodash';
 
 const emailRoot = path.join(__dirname, 'resources/emails');
 
@@ -47,7 +47,7 @@ function sendEmailsToStudentGroup(studentGroup, template, locals = {}) {
 }
 
 const sendNotification = notification =>
-  sendEmailsToStudentGroup(notification.studentGroup, 'follothru')
+  sendEmailsToStudentGroup(notification.studentGroup, 'follothru', notification.meta)
     .then(results => {
       const successes = _.filter(results, result => result.success);
       logger.info(`(success: ${successes.length}/${results.length}) send notification(${notification._id}) completed.`);
