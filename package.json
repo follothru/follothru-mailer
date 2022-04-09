@@ -16,7 +16,7 @@
     "dotenv": "^8.0.0",
     "email-templates": "^5.1.0",
     "lodash": "^4.17.11",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "mongoose": "^5.5.14",
     "nodemailer": "^6.2.1",
     "pug": "^2.0.3",
